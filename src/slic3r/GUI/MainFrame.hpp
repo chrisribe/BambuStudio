@@ -29,6 +29,9 @@
 #include "Widgets/SideMenuPopup.hpp"
 #include "FilamentGroupPopup.hpp"
 
+// Forward declarations for print history
+class PrintHistoryManager;
+class PrintHistoryWidget;
 
 // BBS
 #include "BBLTopbar.hpp"
@@ -221,7 +224,8 @@ public:
         tpProject       = 5,
         tpCalibration   = 6,
         tpAuxiliary     = 7,
-        toDebugTool     = 8,
+        tpPrintHistory  = 8,
+        toDebugTool     = 9,
     };
 
     //BBS: add slice&&print status update logic
@@ -380,6 +384,7 @@ public:
     CalibrationPanel*     m_calibration{ nullptr };
     WebViewPanel*         m_webview { nullptr };
     PrinterWebView*       m_printer_view{nullptr};
+    PrintHistoryWidget*   m_print_history{ nullptr };
     wxLogWindow*          m_log_window { nullptr };
     // BBS
     //wxBookCtrlBase*       m_tabpanel { nullptr };
@@ -420,6 +425,10 @@ public:
 
     int select_device_page_count{ 0 };
 
+    // Print History Manager
+    static PrintHistoryManager* GetPrintHistoryManager();
+    void OnPrintJobFinished(const wxString& filename, const wxString& device_name, const wxString& status, int duration_seconds, const wxString& gcode_path = "");
+
 #ifdef __APPLE__
     std::unique_ptr<wxTaskBarIcon> m_taskbar_icon;
 #endif // __APPLE__
@@ -429,6 +438,9 @@ public:
     uint32_t  			m_ulSHChangeNotifyRegister { 0 };
 	static constexpr int WM_USER_MEDIACHANGED { 0x7FFF }; // WM_USER from 0x0400 to 0x7FFF, picking the last one to not interfere with wxWidgets allocation
 #endif // _WIN32
+
+private:
+    static PrintHistoryManager* s_print_history_manager;
 };
 
 wxDECLARE_EVENT(EVT_HTTP_ERROR, wxCommandEvent);

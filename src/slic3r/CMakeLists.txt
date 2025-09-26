@@ -641,8 +641,22 @@ if (UNIX AND NOT APPLE)
     )
 endif ()
 
+# Add print history sources
+list(APPEND SLIC3R_GUI_SOURCES
+    ../print_history/PrintHistoryManager.hpp
+    ../print_history/PrintHistoryManager.cpp
+    ../print_history/PrintHistoryWidget.hpp
+    ../print_history/PrintHistoryWidget.cpp
+)
+
 add_library(libslic3r_gui STATIC ${SLIC3R_GUI_SOURCES})
 target_include_directories(libslic3r_gui PRIVATE Utils)
+
+# Find SQLite3 for print history
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(SQLITE3 REQUIRED sqlite3)
+target_include_directories(libslic3r_gui PRIVATE ${SQLITE3_INCLUDE_DIRS})
+target_compile_definitions(libslic3r_gui PRIVATE ${SQLITE3_CFLAGS_OTHER})
 
 if (WIN32)
     target_include_directories(libslic3r_gui PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../deps/WebView2/include)
@@ -652,7 +666,7 @@ source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SLIC3R_GUI_SOURCES})
 
 encoding_check(libslic3r_gui)
 
-target_link_libraries(libslic3r_gui libslic3r cereal imgui imguizmo minilzo GLEW::GLEW OpenGL::GL hidapi ${wxWidgets_LIBRARIES} glfw libcurl OpenSSL::SSL OpenSSL::Crypto)
+target_link_libraries(libslic3r_gui libslic3r cereal imgui imguizmo minilzo GLEW::GLEW OpenGL::GL hidapi ${wxWidgets_LIBRARIES} glfw libcurl OpenSSL::SSL OpenSSL::Crypto ${SQLITE3_LIBRARIES})
 #target_link_libraries(libslic3r_gui libslic3r cereal imgui imguizmo minilzo GLEW::GLEW OpenGL::GL hidapi libcurl OpenSSL::SSL OpenSSL::Crypto ${wxWidgets_LIBRARIES} glfw)
 
 if (MSVC)
