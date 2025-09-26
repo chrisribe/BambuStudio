@@ -15772,6 +15772,36 @@ void Plater::print_job_finished(wxCommandEvent &evt)
 #endif // __APPLE__
     }
 
+    // Add print job to history
+    try {
+        wxString filename = "";
+        wxString device_name = "";
+        wxString status = "Completed"; // Default status
+        int duration_seconds = 0;
+        wxString gcode_path = "";
+        
+        // Try to get current project filename
+        if (p && p->model.objects.size() > 0) {
+            // Get the project name or first object name
+            filename = p->project_filename.IsEmpty() ? "Unknown Project" : wxFileName(p->project_filename).GetName();
+        }
+        
+        // Try to get device name from device manager
+        Slic3r::DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+        if (dev) {
+            auto machine = dev->get_selected_machine();
+            if (machine) {
+                device_name = wxString::FromUTF8(machine->get_machine_name());
+            }
+        }
+        
+        // Add to print history
+        if (p && p->main_frame) {
+            p->main_frame->OnPrintJobFinished(filename, device_name, status, duration_seconds, gcode_path);
+        }
+    } catch (const std::exception& e) {
+        wxLogError("Error adding print job to history: %s", e.what());
+    }
 
     Slic3r::DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (!dev) return;

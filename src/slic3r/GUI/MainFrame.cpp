@@ -45,6 +45,9 @@
 #include "Widgets/ProgressDialog.hpp"
 #include "BindDialog.hpp"
 #include "../Utils/MacDarkMode.hpp"
+// Print History
+#include "../../print_history/PrintHistoryManager.hpp"
+#include "../../print_history/PrintHistoryWidget.hpp"
 
 #include <fstream>
 #include <string_view>
@@ -75,6 +78,9 @@
 
 namespace Slic3r {
 namespace GUI {
+
+// Static member definition
+PrintHistoryManager* MainFrame::s_print_history_manager = nullptr;
 
 wxDEFINE_EVENT(EVT_SELECT_TAB, wxCommandEvent);
 wxDEFINE_EVENT(EVT_HTTP_ERROR, wxCommandEvent);
@@ -1037,6 +1043,9 @@ void MainFrame::shutdown()
     // BBS: why clear ?
     //wxGetApp().plater_ = nullptr;
 
+    // Clean up print history manager
+    CleanupPrintHistoryManager();
+
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "MainFrame::shutdown exit";
 }
 
@@ -1280,6 +1289,14 @@ void MainFrame::init_tabpanel()
     m_calibration = new CalibrationPanel(m_tabpanel, wxID_ANY, wxDefaultPosition, wxDefaultSize);
     m_calibration->SetBackgroundColour(*wxWHITE);
     m_tabpanel->AddPage(m_calibration, _L("Calibration"), std::string("tab_calibration_active"), std::string("tab_calibration_active"), false);
+
+    // Print History tab
+    PrintHistoryManager* print_manager = GetPrintHistoryManager();
+    if (print_manager) {
+        m_print_history = new PrintHistoryWidget(m_tabpanel, print_manager);
+        m_print_history->SetBackgroundColour(*wxWHITE);
+        m_tabpanel->AddPage(m_print_history, _L("Print History"), std::string("tab_auxiliary_avtice"), std::string("tab_auxiliary_avtice"), false);
+    }
 
     if (m_plater) {
         // load initial config
@@ -4347,6 +4364,49 @@ void SettingsDialog::on_dpi_changed(const wxRect& suggested_rect)
     SetMinSize(size);
     Fit();
     Refresh();
+}
+
+// Print History Manager Implementation
+PrintHistoryManager* MainFrame::GetPrintHistoryManager() {
+    if (!s_print_history_manager) {
+        s_print_history_manager = new PrintHistoryManager();
+        if (!s_print_history_manager->Initialize()) {
+            delete s_print_history_manager;
+            s_print_history_manager = nullptr;
+            wxLogError("Failed to initialize print history manager");
+        }
+    }
+    return s_print_history_manager;
+}
+
+void MainFrame::CleanupPrintHistoryManager() {
+    if (s_print_history_manager) {
+        delete s_print_history_manager;
+        s_print_history_manager = nullptr;
+        wxLogInfo("Print history manager cleaned up");
+    }
+}
+
+void MainFrame::OnPrintJobFinished(const wxString& filename, const wxString& device_name, const wxString& status, int duration_seconds, const wxString& gcode_path) {
+    PrintHistoryManager* manager = GetPrintHistoryManager();
+    if (manager) {
+        PrintHistoryEntry entry;
+        entry.filename = filename;
+        entry.device_name = device_name;
+        entry.print_time = wxDateTime::Now();
+        entry.status = status;
+        entry.duration_seconds = duration_seconds;
+        entry.gcode_path = gcode_path;
+        
+        if (manager->AddPrintJob(entry)) {
+            // Refresh the print history widget if it's visible
+            if (m_print_history) {
+                m_print_history->RefreshHistory();
+            }
+        } else {
+            wxLogError("Failed to add print job to history");
+        }
+    }
 }
 
 
