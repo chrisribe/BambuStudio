@@ -427,6 +427,7 @@ public:
 
     // Print History Manager
     static PrintHistoryManager* GetPrintHistoryManager();
+    static void CleanupPrintHistoryManager();
     void OnPrintJobFinished(const wxString& filename, const wxString& device_name, const wxString& status, int duration_seconds, const wxString& gcode_path = "");
 
 #ifdef __APPLE__

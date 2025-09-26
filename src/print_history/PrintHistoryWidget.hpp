@@ -25,6 +25,7 @@ private:
     void OnExportJSON(wxCommandEvent& event);
     void OnRefresh(wxCommandEvent& event);
     void OnAddSampleData(wxCommandEvent& event);
+    void OnShowInfo(wxCommandEvent& event);
     void OnItemSelected(wxListEvent& event);
     void OnItemRightClick(wxListEvent& event);
     void OnDeleteEntry(wxCommandEvent& event);
@@ -48,6 +49,7 @@ private:
     wxButton* m_export_json_btn;
     wxButton* m_refresh_btn;
     wxButton* m_add_sample_btn;
+    wxButton* m_show_info_btn;
     
     // Details panel components
     wxStaticText* m_details_filename;
@@ -67,6 +69,7 @@ private:
         ID_EXPORT_JSON,
         ID_REFRESH,
         ID_ADD_SAMPLE_DATA,
+        ID_SHOW_INFO,
         ID_DELETE_ENTRY,
         ID_SEARCH
     };

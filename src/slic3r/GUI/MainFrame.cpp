@@ -1043,6 +1043,9 @@ void MainFrame::shutdown()
     // BBS: why clear ?
     //wxGetApp().plater_ = nullptr;
 
+    // Clean up print history manager
+    CleanupPrintHistoryManager();
+
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "MainFrame::shutdown exit";
 }
 
@@ -4374,6 +4377,14 @@ PrintHistoryManager* MainFrame::GetPrintHistoryManager() {
         }
     }
     return s_print_history_manager;
+}
+
+void MainFrame::CleanupPrintHistoryManager() {
+    if (s_print_history_manager) {
+        delete s_print_history_manager;
+        s_print_history_manager = nullptr;
+        wxLogInfo("Print history manager cleaned up");
+    }
 }
 
 void MainFrame::OnPrintJobFinished(const wxString& filename, const wxString& device_name, const wxString& status, int duration_seconds, const wxString& gcode_path) {

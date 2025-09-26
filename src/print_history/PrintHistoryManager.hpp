@@ -36,6 +36,10 @@ public:
     // For testing/demonstration
     bool AddSampleData();
     
+    // Statistics and debugging
+    int GetEntryCount() const;
+    wxString GetDatabaseInfo() const;
+    
 private:
     struct sqlite3* m_db;
     wxString m_db_path;
