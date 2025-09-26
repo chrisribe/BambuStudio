@@ -33,6 +33,9 @@ public:
     bool DeleteEntry(int id);
     bool UpdateEntry(const PrintHistoryEntry& entry);
     
+    // For testing/demonstration
+    bool AddSampleData();
+    
 private:
     struct sqlite3* m_db;
     wxString m_db_path;

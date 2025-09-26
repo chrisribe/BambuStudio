@@ -23,7 +23,11 @@ bool PrintHistoryManager::Initialize() {
         return false;
     }
     
-    return CreateTables();
+    bool result = CreateTables();
+    if (result) {
+        wxLogInfo("Print history database initialized at: %s", m_db_path);
+    }
+    return result;
 }
 
 wxString PrintHistoryManager::GetDatabasePath() const {
@@ -279,4 +283,58 @@ bool PrintHistoryManager::UpdateEntry(const PrintHistoryEntry& entry) {
     sqlite3_finalize(stmt);
     
     return rc == SQLITE_DONE;
+}
+
+bool PrintHistoryManager::AddSampleData() {
+    if (!m_db) return false;
+    
+    // Sample data for demonstration
+    std::vector<PrintHistoryEntry> samples;
+    
+    // Sample 1 - Successful print
+    PrintHistoryEntry sample1;
+    sample1.filename = "Benchy_Test";
+    sample1.device_name = "Bambu Lab A1 mini";
+    sample1.print_time = wxDateTime::Now() - wxTimeSpan::Hours(2);
+    sample1.status = "Success";
+    sample1.duration_seconds = 3600; // 1 hour
+    sample1.user_notes = "Perfect first layer, good quality";
+    sample1.gcode_path = "/home/user/prints/benchy_test.gcode";
+    samples.push_back(sample1);
+    
+    // Sample 2 - Failed print
+    PrintHistoryEntry sample2;
+    sample2.filename = "Large_Vase_Print";
+    sample2.device_name = "Bambu Lab X1 Carbon";
+    sample2.print_time = wxDateTime::Now() - wxTimeSpan::Hours(24);
+    sample2.status = "Failed";
+    sample2.duration_seconds = 7200; // 2 hours before failure
+    sample2.user_notes = "Print failed - nozzle clog detected";
+    sample2.gcode_path = "/home/user/prints/large_vase.gcode";
+    samples.push_back(sample2);
+    
+    // Sample 3 - Another successful print
+    PrintHistoryEntry sample3;
+    sample3.filename = "Phone_Case_v2";
+    sample3.device_name = "Bambu Lab A1 mini";
+    sample3.print_time = wxDateTime::Now() - wxTimeSpan::Hours(48);
+    sample3.status = "Success";
+    sample3.duration_seconds = 1800; // 30 minutes
+    sample3.user_notes = "Quick print, good fit";
+    sample3.gcode_path = "/home/user/prints/phone_case_v2.gcode";
+    samples.push_back(sample3);
+    
+    bool success = true;
+    for (const auto& sample : samples) {
+        if (!AddPrintJob(sample)) {
+            success = false;
+            wxLogError("Failed to add sample print job: %s", sample.filename);
+        }
+    }
+    
+    if (success) {
+        wxLogInfo("Successfully added %zu sample print history entries", samples.size());
+    }
+    
+    return success;
 }

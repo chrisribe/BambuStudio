@@ -9,6 +9,7 @@ wxBEGIN_EVENT_TABLE(PrintHistoryWidget, wxPanel)
     EVT_BUTTON(ID_EXPORT_CSV, PrintHistoryWidget::OnExportCSV)
     EVT_BUTTON(ID_EXPORT_JSON, PrintHistoryWidget::OnExportJSON)
     EVT_BUTTON(ID_REFRESH, PrintHistoryWidget::OnRefresh)
+    EVT_BUTTON(ID_ADD_SAMPLE_DATA, PrintHistoryWidget::OnAddSampleData)
     EVT_LIST_ITEM_SELECTED(wxID_ANY, PrintHistoryWidget::OnItemSelected)
     EVT_LIST_ITEM_RIGHT_CLICK(wxID_ANY, PrintHistoryWidget::OnItemRightClick)
     EVT_MENU(ID_DELETE_ENTRY, PrintHistoryWidget::OnDeleteEntry)
@@ -35,11 +36,13 @@ void PrintHistoryWidget::SetupUI() {
     m_search_ctrl->SetDescriptiveText("Search print history...");
     
     m_refresh_btn = new wxButton(this, ID_REFRESH, "Refresh");
+    m_add_sample_btn = new wxButton(this, ID_ADD_SAMPLE_DATA, "Add Sample Data");
     m_export_csv_btn = new wxButton(this, ID_EXPORT_CSV, "Export CSV");
     m_export_json_btn = new wxButton(this, ID_EXPORT_JSON, "Export JSON");
     
     toolbar_sizer->Add(m_search_ctrl, 1, wxALL | wxEXPAND, 5);
     toolbar_sizer->Add(m_refresh_btn, 0, wxALL, 5);
+    toolbar_sizer->Add(m_add_sample_btn, 0, wxALL, 5);
     toolbar_sizer->Add(m_export_csv_btn, 0, wxALL, 5);
     toolbar_sizer->Add(m_export_json_btn, 0, wxALL, 5);
     
@@ -143,6 +146,22 @@ void PrintHistoryWidget::RefreshHistory() {
     
     m_entries = m_manager->GetPrintHistory();
     PopulateList();
+    
+    // If no entries, suggest adding sample data for testing
+    if (m_entries.empty()) {
+        wxLogInfo("Print history is empty. You can add sample data for testing.");
+        // Optional: Show a message in the details panel
+        if (m_details_filename) {
+            m_details_filename->SetLabel("No print history entries found");
+            m_details_device->SetLabel("Click 'Add Sample Data' to see demo entries");
+            m_details_time->SetLabel("");
+            m_details_status->SetLabel("");
+            m_details_duration->SetLabel("");
+            m_details_notes->SetLabel("");
+            m_details_gcode_path->SetLabel("");
+            m_details_panel->Layout();
+        }
+    }
 }
 
 void PrintHistoryWidget::PopulateList() {
@@ -219,6 +238,20 @@ void PrintHistoryWidget::OnExportJSON(wxCommandEvent& event) {
 
 void PrintHistoryWidget::OnRefresh(wxCommandEvent& event) {
     RefreshHistory();
+}
+
+void PrintHistoryWidget::OnAddSampleData(wxCommandEvent& event) {
+    if (!m_manager) {
+        wxMessageBox("Print history manager not available.", "Error", wxOK | wxICON_ERROR);
+        return;
+    }
+    
+    if (m_manager->AddSampleData()) {
+        wxMessageBox("Sample data added successfully!", "Success", wxOK | wxICON_INFORMATION);
+        RefreshHistory();
+    } else {
+        wxMessageBox("Failed to add sample data.", "Error", wxOK | wxICON_ERROR);
+    }
 }
 
 void PrintHistoryWidget::OnItemSelected(wxListEvent& event) {

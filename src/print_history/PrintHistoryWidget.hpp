@@ -24,6 +24,7 @@ private:
     void OnExportCSV(wxCommandEvent& event);
     void OnExportJSON(wxCommandEvent& event);
     void OnRefresh(wxCommandEvent& event);
+    void OnAddSampleData(wxCommandEvent& event);
     void OnItemSelected(wxListEvent& event);
     void OnItemRightClick(wxListEvent& event);
     void OnDeleteEntry(wxCommandEvent& event);
@@ -46,6 +47,7 @@ private:
     wxButton* m_export_csv_btn;
     wxButton* m_export_json_btn;
     wxButton* m_refresh_btn;
+    wxButton* m_add_sample_btn;
     
     // Details panel components
     wxStaticText* m_details_filename;
@@ -64,6 +66,7 @@ private:
         ID_EXPORT_CSV = wxID_HIGHEST + 1,
         ID_EXPORT_JSON,
         ID_REFRESH,
+        ID_ADD_SAMPLE_DATA,
         ID_DELETE_ENTRY,
         ID_SEARCH
     };
