@@ -1,23 +1,17 @@
-# Bambu Local Print Queue (MVP)
+# Bambu Local Print Queue (moved to separate repo)
 
-## Goal
-Queue multi-plate exports from Bambu Studio so prints can be dispatched in order later, with manual confirmation between plates.
+The queue service prototype has been moved out of this BambuStudio fork to keep Studio changes minimal and reduce upstream merge friction.
 
-## Scope (MVP)
-- Ingest exported plate jobs from a watched folder.
-- Group jobs into a project batch (`project_id`).
-- Persist queue state in SQLite.
-- CLI controls: list, next, complete, hold, resume.
-- Optional watch mode for automatic ingest.
+## New home
+- Repo: https://github.com/chrisribe/bambu-local-print-queue
 
-## Non-goals (MVP)
-- Deep integration in Bambu Studio UI.
-- Fully automatic unattended chaining without user confirmation.
-- Printer API upload/dispatch (stubbed for now).
+## BambuStudio responsibility (thin adapter only)
+This repository should only handle export-side integration points, for example:
+- Export selected plate(s) into a batch folder.
+- Emit a `manifest.json` that describes `project_id`, `plate_count`, and plate files.
+- Optionally call external queue CLI (`bambu_queue.py ingest ...`) after export.
 
-## Ingest Contract
-Preferred export layout from Studio-side adapter:
-
+## Recommended export contract
 ```text
 exports/
   my_project_2026-09-03/
@@ -26,8 +20,7 @@ exports/
     plate_2.gcode.3mf
 ```
 
-`manifest.json` example:
-
+`manifest.json` schema:
 ```json
 {
   "project_name": "my_project",
@@ -39,32 +32,3 @@ exports/
   ]
 }
 ```
-
-## Queue States
-- `queued`
-- `held`
-- `sent`
-- `printing`
-- `done`
-- `failed`
-
-MVP transitions:
-- ingest -> `queued`
-- `next` picks first `queued` and marks `sent`
-- `complete <job_id>` marks `done`
-- `hold <job_id>` / `resume <job_id>` toggles held/queued
-
-## CLI surface
-- `watch --inbox <dir> --db <path>`
-- `ingest --manifest <manifest.json> --db <path>`
-- `list --db <path>`
-- `next --db <path>`
-- `complete --db <path> --job-id <id>`
-- `hold --db <path> --job-id <id>`
-- `resume --db <path> --job-id <id>`
-
-## Next steps after MVP
-1. Add dispatch adapter to X1 (LAN auth/upload/print start).
-2. Add Discord/Hermes bridge (`/queue next`, `/queue status`).
-3. Add safety checks (AMS, clear-bed acknowledgment, printer error gate).
-4. Add retries, reorder, and per-project pause.
